@@ -23,7 +23,7 @@ pub struct Stake<'info> {
     #[account(
         mut,  
         seeds = [TREASURY, admin.key().as_ref()],
-        bump = treasury.treasury_bump,
+        bump = treasury.state_bump
     )]
     pub treasury: Account<'info, Treasury>,
 
@@ -32,7 +32,7 @@ pub struct Stake<'info> {
         mut,
 		seeds = [USERPROFILE, user.key().as_ref()],
         bump,
-        has_one = user @ ReputeDaoError::UnauthorizedUser
+        constraint = user_profile.owner == user.key() @ ReputeDaoError::UnauthorizedUser
     )]
     pub user_profile: Account<'info, UserProfile>,
 
@@ -66,11 +66,11 @@ impl<'info> Stake<'info> {
     pub fn stake_tokens(&mut self, amount: u64) -> Result<()> {
         // Validation
         require!(amount > 0, ReputeDaoError::InvalidStakeAmount);
-        require!(amount >= self.config.minimum_stake, ReputeDaoError::BelowMinimumStake);
+        require!(amount >= self.config.minimum_stake, ReputeDaoError::MinimumStakeRequired);
         require!(!self.config.is_paused, ReputeDaoError::SystemPaused);
         require!(
             self.user_token_account.amount >= amount,
-            ReputeDaoError::InsufficientTokens
+            ReputeDaoError::InsufficientStake
         );
 
         // Transfer tokens from user to treasury

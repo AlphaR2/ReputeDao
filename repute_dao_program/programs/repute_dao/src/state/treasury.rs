@@ -2,7 +2,7 @@
 use anchor_lang::prelude::*;
 
 // game config state
-#[accounts]
+#[account]
 #[derive(InitSpace)]
 pub struct Config {
 pub admin: Pubkey,

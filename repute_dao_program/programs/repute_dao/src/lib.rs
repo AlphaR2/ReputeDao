@@ -4,35 +4,32 @@ pub mod instructions;
 pub mod state;
 
 use anchor_lang::prelude::*;
-use std::str::FromStr;
 
 pub use constants::*;
-pub use error::*;
 pub use instructions::*;
+pub use error::*;
 pub use state::*;
 
-declare_id!("BGLQcC4NREAF5gJKuTZqkBNttqWmPVMzt8ukRJ5Lzs3S");
+declare_id!("7EifS4oYLhMe2axbnViW4ep9G3n6YxBP392gz6b7v2bY");
 
 
 #[program]
 pub mod repute_dao {
     use super::*;
-
-    /// Initialize the DAO and set configuration parameters
-    pub fn initialize_dao(
-        ctx: Context<InitializeDao>,
+    // / Initialize the DAO and set configuration parameters
+    pub fn init_dao(
+        ctx: Context<InitializeDaoProgram>,
         admin: Pubkey,
         minimum_stake: u64,
         token_mint: Pubkey,
         vote_power: u8,
     ) -> Result<()> {
-        let bumps = ctx.bumps;
-        ctx.accounts.initialize_dao(
+        ctx.accounts.initialize(
             minimum_stake,
             admin,
             token_mint,
             vote_power,
-            bumps,
+            ctx.bumps
         )
     }
 
@@ -40,7 +37,7 @@ pub mod repute_dao {
     pub fn initialize_treasury(
         ctx: Context<InitializeTreasury>,
     ) -> Result<()> {
-        instructions::initialize_treasury::handler(ctx)
+        ctx.accounts.initialize_treasury(ctx.bumps)
     }
 
     /// Create a new user profile with a unique username
@@ -54,35 +51,12 @@ pub mod repute_dao {
 
     /// Stake tokens to gain voting rights
     pub fn stake_tokens(
-        ctx: Context<StakeTokens>,
+        ctx: Context<Stake>,
         amount: u64,
     ) -> Result<()> {
         // Validate amount
         require!(amount > 0, ReputeDaoError::InvalidStakeAmount);
-		ctx.accounts.
-        
-        // Implement token transfer
-        ctx.accounts.cpi_csl_spl_token_transfer(amount)?;
-        
-        // Update user profile and treasury
-        let user_profile = &mut ctx.accounts.user_profile;
-        user_profile.stake_amount = user_profile.stake_amount
-            .checked_add(amount)
-            .ok_or(ReputeDaoError::MathOverflow)?;
-            
-        let treasury = &mut ctx.accounts.treasury;
-        treasury.total_staked = treasury.total_staked
-            .checked_add(amount)
-            .ok_or(ReputeDaoError::MathOverflow)?;
-            
-        // If this is a new staker, increment stakers count
-        if user_profile.stake_amount == amount {
-            treasury.stakers_count = treasury.stakers_count
-                .checked_add(1)
-                .ok_or(ReputeDaoError::MathOverflow)?;
-        }
-        
-        Ok(())
+		ctx.accounts.stake_tokens(amount)
     }
 
     /// Unstake tokens and reduce voting power
@@ -114,6 +88,7 @@ pub mod repute_dao {
     /// Reset a user's reputation (admin only)
     pub fn reset_user_reputation(
         ctx: Context<ResetUserReputation>,
+        user: Pubkey
     ) -> Result<()> {
         ctx.accounts.reset_user_reputation()
     }

@@ -64,9 +64,19 @@ pub enum MemberRanks {
             51..=100 => MemberRanks::Bronze,          
             101..=200 => MemberRanks::Contributor,      
             201..=400 => MemberRanks::Guardian,     
-            400..=i64::MAX => MemberRanks::Leader, 
+            401..=i64::MAX => MemberRanks::Leader, 
         }
     }
+
+    pub fn vote_weight(&self) -> u8 {
+    match self {
+        MemberRanks::Member => 1,        // +1 or -1 reputation
+        MemberRanks::Bronze => 1,        // +1 or -1 reputation  
+        MemberRanks::Contributor => 2,   // +2 or -2 reputation
+        MemberRanks::Guardian => 2,      // +2 or -2 reputation
+        MemberRanks::Leader => 3,        // +3 or -3 reputation
+    }
+}
  }
 
 impl Space for MemberRanks {

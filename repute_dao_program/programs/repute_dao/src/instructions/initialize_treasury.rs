@@ -9,10 +9,8 @@ use crate::error::*;
 pub struct InitializeTreasury<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-
     /// CHECK: Admin account, zero panic
     pub admin: UncheckedAccount<'info>,
-
     /// Verify config exists and admin matches
     #[account(
         seeds = [CONFIG, admin.key().as_ref()],
@@ -31,7 +29,7 @@ pub struct InitializeTreasury<'info> {
     )]
     pub treasury: Account<'info, Treasury>,
 
-    /// Treasury authority PDA for signing token transfers
+    /// Treasury authority PDA for signing token transfers from treasury
     #[account(
         seeds = [TREASURYAUTH, config.key().as_ref(), admin.key().as_ref()],
         bump
@@ -39,7 +37,7 @@ pub struct InitializeTreasury<'info> {
     /// CHECK: This is for signing auth
     pub treasury_authority: UncheckedAccount<'info>,
 
-	// token mint validated with the Mint properly
+	// token mint
 	#[account(
         address = config.token_mint @ ReputeDaoError::InvalidTokenMint
     )]

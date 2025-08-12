@@ -6,7 +6,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-workspace = "BGLQcC4NREAF5gJKuTZqkBNttqWmPVMzt8ukRJ5Lzs3S"
+workspace = "7EifS4oYLhMe2axbnViW4ep9G3n6YxBP392gz6b7v2bY"
 
 [registry]
 url = "https://api.apr.dev"

@@ -3,6 +3,7 @@ use crate::error::*;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
+#[instruction(user:Pubkey)]
 pub struct ResetUserReputation<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -16,12 +17,19 @@ pub struct ResetUserReputation<'info> {
     pub config: Account<'info, Config>,
 
     /// User profile to reset
-    #[account(mut)]
-    pub user_profile: Account<'info, UserProfile>,
+    #[account(
+        mut,
+        seeds = [USERPROFILE, user.as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,  
 }
 
 impl<'info> ResetUserReputation<'info> {
-    pub fn reset_user_reputation(&mut self) -> Result<()> {
+    pub fn reset_user_reputation(
+        &mut self
+        // user: 
+    ) -> Result<()> {
         require!(!self.config.is_paused, ReputeDaoError::SystemPaused);
 
         let user_profile = &mut self.user_profile;

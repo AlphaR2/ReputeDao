@@ -23,7 +23,7 @@ pub struct Unstake<'info> {
     #[account(
         mut,
         seeds = [TREASURY, admin.key().as_ref()],
-        bump = treasury.treasury_bump,
+         bump = treasury.state_bump
     )]
     pub treasury: Account<'info, Treasury>,
 
@@ -40,7 +40,7 @@ pub struct Unstake<'info> {
         mut,
         seeds = [USERPROFILE, user.key().as_ref()],
         bump,
-        has_one = user @ ReputeDaoError::UnauthorizedUser
+        constraint = user_profile.owner == user.key() @ ReputeDaoError::UnauthorizedUser
     )]
     pub user_profile: Account<'info, UserProfile>,
 
@@ -90,6 +90,9 @@ impl<'info> Unstake<'info> {
             ReputeDaoError::InsufficientTreasuryBalance
         );
 
+        let config = self.config.key();
+        let admin = self.admin.key();
+
         // Calculate new stake amount
         let new_stake_amount = user_profile.stake_amount
             .checked_sub(amount)
@@ -98,8 +101,8 @@ impl<'info> Unstake<'info> {
         // Transfer tokens from treasury to user using PDA authority
         let treasury_auth_seeds = &[
             TREASURYAUTH,
-            self.config.key().as_ref(),
-            self.admin.key().as_ref(),
+            config.as_ref(),
+            admin.as_ref(),
             &[self.treasury.vault_bump],
         ];
         let signer_seeds = &[&treasury_auth_seeds[..]];

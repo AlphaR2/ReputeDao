@@ -21,9 +21,9 @@ pub struct Vote<'info> {
     // Voter's profile (to check stake amount and update vote count)
     #[account(
         mut,
-        seeds = [USERPROFILE, user.key().as_ref()],
+        seeds = [USERPROFILE, voter.key().as_ref()],
         bump,
-        has_one = voter @ ReputeDaoError::UnauthorizedUser
+        constraint = voter_profile.owner == voter.key() @ ReputeDaoError::UnauthorizedUser
     )]
     pub voter_profile: Account<'info, UserProfile>,
 
@@ -59,7 +59,7 @@ pub struct Vote<'info> {
         init,
         payer = voter,
         space = ANCHOR_DISCRIMINATOR + VoteRecord::INIT_SPACE,
-        seeds = [VOTE_RECORD, voter.key().as_ref(), target_username.as_bytes(), &Clock::get()?.unix_timestamp.to_le_bytes()],
+        seeds = [VOTE_RECORD, voter.key().as_ref(), target_username.as_bytes()],
         bump
     )]
     pub vote_record: Account<'info, VoteRecord>,
@@ -122,7 +122,8 @@ impl<'info> Vote<'info> {
         }
 
         // Calculate vote weight based on role
-        let vote_weight = self.voter_profile.role_level.vote_weight() as i64;
+        let initial_vote_weight = self.voter_profile.role_level.vote_weight() as i64;
+        let vote_weight = initial_vote_weight * self.config.vote_power as i64;
         let reputation_change = match vote_type {
             VoteType::Upvote => vote_weight,
             VoteType::Downvote => -vote_weight,

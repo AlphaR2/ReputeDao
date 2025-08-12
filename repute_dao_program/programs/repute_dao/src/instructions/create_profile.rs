@@ -2,6 +2,7 @@ use crate::*;
 use crate::error::*;
 use anchor_lang::prelude::*;
 
+//create account
 #[derive(Accounts)]
 #[instruction(username: String)]
 pub struct CreateProfile <'info> {
@@ -39,7 +40,7 @@ impl <'info> CreateProfile <'info> {
 
 		// Handle user registry
         let user_registry = &mut self.user_registry;
-        if user_registry.claimed {
+        if user_registry.claimed { // if it has been claimed we return error.
             return err!(ReputeDaoError::UsernameAlreadyExists);
         } else {
             user_registry.claimed = true;
